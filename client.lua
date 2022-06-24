@@ -7,6 +7,26 @@ Citizen.CreateThread(function()
 	end
 end)
 
+-- Cops on Patrol
+Citizen.CreateThread(function()
+	while true do
+		Citizen.Wait(0)
+		StopAnyPedModelBeingSuppressed()  --May or may not be needed
+		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_CAR, true)  
+		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_BIKE, true)  
+		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_NEXT_TO_CAR, true)  
+		SetCreateRandomCops(true)  
+		SetCreateRandomCopsNotOnScenarios(true)
+		SetCreateRandomCopsOnScenarios(true) 		
+		SetVehicleModelIsSuppressed(GetHashKey("police"), false)  
+		SetVehicleModelIsSuppressed(GetHashKey("police2"), false)  
+		SetVehicleModelIsSuppressed(GetHashKey("police3"), false)  
+		SetVehicleModelIsSuppressed(GetHashKey("police4"), false)  
+		SetVehicleModelIsSuppressed(GetHashKey("policeb"), false)  
+		SetVehicleModelIsSuppressed(GetHashKey("sheriff"), false) 
+	end
+end)
+
 -- Enumeration
 local entityEnumerator = {
     __gc = function(enum)
@@ -62,26 +82,6 @@ function GetAllVehicles()
     end
     return vehicles
 end
-
--- Cops on Patrol
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(0)
-		StopAnyPedModelBeingSuppressed()  --May or may not be needed
-		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_CAR, true)  
-		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_BIKE, true)  
-		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_NEXT_TO_CAR, true)  
-		SetCreateRandomCops(true)  
-		SetCreateRandomCopsNotOnScenarios(true)
-		SetCreateRandomCopsOnScenarios(true) 		
-		SetVehicleModelIsSuppressed(GetHashKey("police"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("police2"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("police3"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("police4"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("policeb"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("sheriff"), false) 
-	end
-end)
 
 -- Speeding Tickets from NPC Police
 Citizen.CreateThread(function()
