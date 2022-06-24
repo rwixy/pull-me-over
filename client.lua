@@ -101,7 +101,7 @@ Citizen.CreateThread(function()
 					local mphcalc = speed * 2.236936
 					local wantedlevel = GetPlayerWantedLevel(playerPed2)
 					local inpedvehicle = IsPedInVehicle(playerPed, pedvehicle, false)
-					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 and arrestable == true then
+					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 then
 						if mphcalc >= 45.0 and mphcalc <= 64.9 and DoesEntityExist(copped) then
 							local mph = ESX.Math.Round(mphcalc)
 							exports['mythic_notify']:SendAlert("inform", 'Radar Detected - '..mph..' / 65 mph', 1500)
