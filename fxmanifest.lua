@@ -2,7 +2,7 @@
 fx_version 'adamant'
 game 'gta5'
 
-description ''
+description 'Pull-Me-Over'
 author 'Bird'
 version '1'
 
