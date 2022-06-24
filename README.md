@@ -1,7 +1,7 @@
 # pull-me-over
 Recreation of Pull Me Over by sorbas for FiveM
 
-BETA RELEASE
+BETA RELEASE - 
 Full Script ETA 7/10/2022
 
 Requirements:
