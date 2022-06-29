@@ -5,7 +5,7 @@ BETA RELEASE -
 Full Script ETA 8/10/2022
 
 Requirements:
-Mythic Notify
-
+JayMontana36/mythic_notify
+EthanPeacock/progressBars
 
 Thanks
