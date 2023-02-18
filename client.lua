@@ -10,20 +10,28 @@ end)
 -- Cops on Patrol
 Citizen.CreateThread(function()
 	while true do
-		Citizen.Wait(0)
-		StopAnyPedModelBeingSuppressed()  --May or may not be needed
+		Citizen.Wait(1000)
+		StopAnyPedModelBeingSuppressed()
 		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_CAR, true)  
 		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_BIKE, true)  
 		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_NEXT_TO_CAR, true)  
 		SetCreateRandomCops(true)  
 		SetCreateRandomCopsNotOnScenarios(true)
-		SetCreateRandomCopsOnScenarios(true) 		
+		SetCreateRandomCopsOnScenarios(true) 	
 		SetVehicleModelIsSuppressed(GetHashKey("police"), false)  
 		SetVehicleModelIsSuppressed(GetHashKey("police2"), false)  
 		SetVehicleModelIsSuppressed(GetHashKey("police3"), false)  
 		SetVehicleModelIsSuppressed(GetHashKey("police4"), false)  
 		SetVehicleModelIsSuppressed(GetHashKey("policeb"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("sheriff"), false) 
+		SetVehicleModelIsSuppressed(GetHashKey("policet"), false)  
+		SetVehicleModelIsSuppressed(GetHashKey("pranger"), false)  
+		SetVehicleModelIsSuppressed(GetHashKey("sheriff"), false)	
+		SetVehicleModelIsSuppressed(GetHashKey("sheriff2"), false)	
+		if IsPedInAnyVehicle(PlayerPedId(), false) then
+			SetDispatchIdealSpawnDistance(490.0) --Ensure no pop-ins while driving fast
+		else
+			SetDispatchIdealSpawnDistance(200.0)
+		end
 	end
 end)
 
@@ -84,6 +92,7 @@ function GetAllVehicles()
 end
 
 -- Speeding Tickets from NPC Police
+
 Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(1500)
@@ -95,24 +104,20 @@ Citizen.CreateThread(function()
 			if vtype == 18 then  
 				local vCoords = GetEntityCoords(vehicle, true)
 				if GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, vCoords.x, vCoords.y, vCoords.z, true) <= 35.0 then 
-					local pedvehicle = GetVehiclePedIsIn(playerPed, false)
-					local copped = GetPedInVehicleSeat(vehicle, -1)
-					local speed = GetEntitySpeed(pedvehicle)
-					local mphcalc = speed * 2.236936
-					local wantedlevel = GetPlayerWantedLevel(playerPed2)
-					local inpedvehicle = IsPedInVehicle(playerPed, pedvehicle, false)
-					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 then
-						if mphcalc >= 45.0 and mphcalc <= 64.9 and DoesEntityExist(copped) then
+					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 and arrestable == true 
+					and HasEntityClearLosToEntityInFront(copped, playerPed) then
+						if mphcalc >= 45.0 and mphcalc <= 70.9 and DoesEntityExist(copped) and ESX.PlayerData.job.name ~= 'police' then
 							local mph = ESX.Math.Round(mphcalc)
 							exports['mythic_notify']:SendAlert("inform", 'Radar Detected - '..mph..' / 65 mph', 1500)
 						end
-						if mphcalc >= 65.0 and mphcalc <= 134.9 and DoesEntityExist(copped) then
+						if mphcalc >= 71.0 and mphcalc <= 139.9 and DoesEntityExist(copped) and ESX.PlayerData.job.name ~= 'police' then
 							local mph = ESX.Math.Round(mphcalc)
 							SetEntityAsMissionEntity(vehicle, true, true)
 							SetEntityAsMissionEntity(copped, true, true)
+							SetEntityInvincible(vehicle, true)
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 65 mph', 2500)
 							Citizen.Wait(2000)
-							TaskVehicleFollow(copped, vehicle, pedvehicle, 30.0, 572, 20)
+							TaskVehicleFollow(copped, vehicle, pedvehicle, 35.0, 572, 20)
 							Citizen.Wait(20000)
 							SetVehicleSiren(vehicle, true)
 							exports['progressBars']:startUI(20000, "PULL OVER...")
@@ -131,13 +136,13 @@ Citizen.CreateThread(function()
 								TaskLeaveVehicle(copped, vehicle, 0)
 								TaskGoToCoordAnyMeans(copped, pCoords, 1.0, 0, 786603, 0xbf800000)
 								Citizen.Wait(15000)
-								TriggerServerEvent('pullmeover:speedingticket')
+								TriggerServerEvent('warrant:speedingticket')
 								exports['mythic_notify']:SendAlert("inform", 'You have been fined $500 for speeding')
 								exports['mythic_notify']:SendAlert("success", 'You are free to go')
 								SetPedAsNoLongerNeeded(copped)
 								SetVehicleAsNoLongerNeeded(vehicle)
 							elseif mphcalc2 <= 2.5 and wantedlevel2 == 0 and distance >= 25.0 then
-								TriggerServerEvent('pullmeover:speedingticket')
+								TriggerServerEvent('warrant:speedingticket')
 								Citizen.Wait(1000)
 								exports['mythic_notify']:SendAlert("error", 'The officer has been called away')
 								exports['mythic_notify']:SendAlert("inform", 'Your plate has been fined $500 for speeding')
@@ -157,7 +162,7 @@ Citizen.CreateThread(function()
 								SetVehicleAsNoLongerNeeded(vehicle)
 							end
 						end
-						if mphcalc >= 135.0 and DoesEntityExist(copped) then
+						if mphcalc >= 140.0 and DoesEntityExist(copped) and ESX.PlayerData.job.name ~= 'police' then
 							local mph = ESX.Math.Round(mphcalc)
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 135 mph', 2500)
 							Citizen.Wait(1000)
