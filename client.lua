@@ -99,27 +99,36 @@ Citizen.CreateThread(function()
 		local playerPed = GetPlayerPed(-1)
 		local playerPed2 = PlayerId()
 		local pCoords = GetEntityCoords(playerPed, true)
+		local playerveh = GetVehiclePedIsIn(playerPed, false)
+		local playervehclass = GetVehicleClass(playerveh)
+		local wantedlevel = GetPlayerWantedLevel(playerPed2)
 		for vehicle in EnumerateVehicles() do
 			local vtype = GetVehicleClass(vehicle)
+			local vCoords = GetEntityCoords(vehicle, true)
+			local copped = GetPedInVehicleSeat(vehicle, -1)
+			local pedvehicle = GetVehiclePedIsIn(playerPed, false)
+			local speed = GetEntitySpeed(pedvehicle)
+			local mphcalc = speed * 2.236936
+			local inpedvehicle = IsPedInVehicle(playerPed, pedvehicle, false)
 			if vtype == 18 then  
 				local vCoords = GetEntityCoords(vehicle, true)
 				if GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, vCoords.x, vCoords.y, vCoords.z, true) <= 35.0 then 
-					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 and arrestable == true 
+					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 and playervehclass ~= 18 
 					and HasEntityClearLosToEntityInFront(copped, playerPed) then
-						if mphcalc >= 45.0 and mphcalc <= 70.9 and DoesEntityExist(copped) and ESX.PlayerData.job.name ~= 'police' then
+						if mphcalc >= 45.0 and mphcalc <= 70.9 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							exports['mythic_notify']:SendAlert("inform", 'Radar Detected - '..mph..' / 65 mph', 1500)
 						end
-						if mphcalc >= 71.0 and mphcalc <= 139.9 and DoesEntityExist(copped) and ESX.PlayerData.job.name ~= 'police' then
+						if mphcalc >= 71.0 and mphcalc <= 139.9 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							SetEntityAsMissionEntity(vehicle, true, true)
 							SetEntityAsMissionEntity(copped, true, true)
 							SetEntityInvincible(vehicle, true)
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 65 mph', 2500)
 							Citizen.Wait(2000)
+							SetVehicleSiren(vehicle, true)
 							TaskVehicleFollow(copped, vehicle, pedvehicle, 35.0, 572, 20)
 							Citizen.Wait(20000)
-							SetVehicleSiren(vehicle, true)
 							exports['progressBars']:startUI(20000, "PULL OVER...")
 							Citizen.Wait(20000)
 							local speed2 = GetEntitySpeed(pedvehicle)
@@ -162,7 +171,7 @@ Citizen.CreateThread(function()
 								SetVehicleAsNoLongerNeeded(vehicle)
 							end
 						end
-						if mphcalc >= 140.0 and DoesEntityExist(copped) and ESX.PlayerData.job.name ~= 'police' then
+						if mphcalc >= 140.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 135 mph', 2500)
 							Citizen.Wait(1000)
