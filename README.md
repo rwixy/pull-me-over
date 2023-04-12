@@ -5,4 +5,6 @@ Requirements:
 - mythic_notify
 - progressBars
 
+Either run this or warrant, not both
+
 Thanks
