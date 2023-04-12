@@ -17,3 +17,5 @@ client_scripts {
 server_script {
    'server.lua'
 }
+
+data_file 'POPSCHED_FILE' 'popcycle.dat'
