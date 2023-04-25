@@ -7,34 +7,6 @@ Citizen.CreateThread(function()
 	end
 end)
 
--- Cops on Patrol
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(1000)
-		StopAnyPedModelBeingSuppressed()
-		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_CAR, true)  
-		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_BIKE, true)  
-		SetScenarioTypeEnabled(WORLD_VEHICLE_POLICE_NEXT_TO_CAR, true)  
-		SetCreateRandomCops(true)  
-		SetCreateRandomCopsNotOnScenarios(true)
-		SetCreateRandomCopsOnScenarios(true) 	
-		SetVehicleModelIsSuppressed(GetHashKey("police"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("police2"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("police3"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("police4"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("policeb"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("policet"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("pranger"), false)  
-		SetVehicleModelIsSuppressed(GetHashKey("sheriff"), false)	
-		SetVehicleModelIsSuppressed(GetHashKey("sheriff2"), false)	
-		if IsPedInAnyVehicle(PlayerPedId(), false) then
-			SetDispatchIdealSpawnDistance(490.0) --Ensure no pop-ins while driving fast
-		else
-			SetDispatchIdealSpawnDistance(200.0)
-		end
-	end
-end)
-
 -- Enumeration
 local entityEnumerator = {
     __gc = function(enum)
