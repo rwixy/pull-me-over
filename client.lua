@@ -64,7 +64,6 @@ function GetAllVehicles()
 end
 
 -- Speeding Tickets from NPC Police
-
 Citizen.CreateThread(function()
 	while true do
 		Citizen.Wait(1500)
