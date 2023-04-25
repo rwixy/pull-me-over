@@ -6,10 +6,6 @@ description 'Pull-Me-Over'
 author 'Bird'
 version '1'
 
-files {
-	'popcycle.dat'
-}
-
 client_scripts {
    'client.lua'
 }
@@ -17,5 +13,3 @@ client_scripts {
 server_script {
    'server.lua'
 }
-
-data_file 'POPSCHED_FILE' 'popcycle.dat'
