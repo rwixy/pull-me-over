@@ -112,52 +112,90 @@ Citizen.CreateThread(function()
 			local inpedvehicle = IsPedInVehicle(playerPed, pedvehicle, false)
 			if vtype == 18 then  
 				local vCoords = GetEntityCoords(vehicle, true)
-				if GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, vCoords.x, vCoords.y, vCoords.z, true) <= 35.0 then 
+				if GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, vCoords.x, vCoords.y, vCoords.z, true) <= 50.0 then 
 					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 and playervehclass ~= 18 
 					and HasEntityClearLosToEntityInFront(copped, playerPed) then
-						if mphcalc >= 45.0 and mphcalc <= 70.9 and DoesEntityExist(copped) and playervehclass ~= 18 then 
+						if mphcalc >= 45.0 and mphcalc <= 70.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							exports['mythic_notify']:SendAlert("inform", 'Radar Detected - '..mph..' / 65 mph', 1500)
 						end
-						if mphcalc >= 71.0 and mphcalc <= 139.9 and DoesEntityExist(copped) and playervehclass ~= 18 then 
+						if mphcalc > 70.0 and mphcalc <= 145.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							SetEntityAsMissionEntity(vehicle, true, true)
 							SetEntityAsMissionEntity(copped, true, true)
-							SetEntityInvincible(vehicle, true)
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 65 mph', 2500)
 							Citizen.Wait(2000)
 							SetVehicleSiren(vehicle, true)
-							TaskVehicleFollow(copped, vehicle, pedvehicle, 35.0, 572, 20)
-							Citizen.Wait(20000)
+							TaskVehicleFollow(copped, vehicle, pedvehicle, 25.0, 572, 20)
+							SetEntityInvincible(vehicle, true)
+							speed2 = GetEntitySpeed(pedvehicle)
+							mphcalc2 = speed2 * 2.236936
+							pCoords = GetEntityCoords(playerPed, true)
+							copCoords = GetEntityCoords(copped, true)
+							driverdoor = GetWorldPositionOfEntityBone(pedvehicle, GetEntityBoneIndexByName(pedvehicle, "door_dside_f"))
+							wantedlevel2 = GetPlayerWantedLevel(playerPed2)
+							distance = GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, copCoords.x, copCoords.y, copCoords.z, true) 
+							Citizen.Wait(7000) 
 							exports['progressBars']:startUI(20000, "PULL OVER...")
 							Citizen.Wait(20000)
-							local speed2 = GetEntitySpeed(pedvehicle)
-							local mphcalc2 = speed2 * 2.236936
-							local pCoords = GetEntityCoords(playerPed, true)
-							local copCoords = GetEntityCoords(copped, true)
-							local distance = GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, copCoords.x, copCoords.y, copCoords.z, true) 
-							local driverdoor = GetWorldPositionOfEntityBone(pedvehicle, GetEntityBoneIndexByName(pedvehicle, "door_dside_f"))
-							local wantedlevel2 = GetPlayerWantedLevel(playerPed2)
-							if mphcalc2 <= 2.5 and wantedlevel2 == 0 and distance <= 25.0 then
-								exports['mythic_notify']:SendAlert("error", 'Engine Off')
-								exports['mythic_notify']:SendAlert("inform", 'Window Down')
-								Citizen.Wait(3000)
-								TaskLeaveVehicle(copped, vehicle, 0)
-								TaskGoToCoordAnyMeans(copped, pCoords, 1.0, 0, 786603, 0xbf800000)
-								Citizen.Wait(15000)
-								TriggerServerEvent('pullmeover:speedingticket')
-								exports['mythic_notify']:SendAlert("inform", 'You have been fined $500 for speeding')
-								exports['mythic_notify']:SendAlert("success", 'You are free to go')
+							speed2 = GetEntitySpeed(pedvehicle)
+							mphcalc2 = speed2 * 2.236936
+							if mphcalc2 <= 2.5 and wantedlevel2 == 0 then
+								while distance >= 25.0 and wantedlevel2 == 0 do
+									ESX.ShowNotification("Please Wait Here...")
+									speed2 = GetEntitySpeed(pedvehicle)
+									mphcalc2 = speed2 * 2.236936
+									if mphcalc2 > 2.5 and wantedlevel2 == 0 then 
+										exports['mythic_notify']:SendAlert("inform", 'Failed to Stop')
+										exports['mythic_notify']:SendAlert("error", 'A Warrant has been issued for your arrest')
+										SetPlayerWantedLevel(PlayerId(), 1, false)
+										SetPlayerWantedLevelNow(PlayerId(), false)
+										Citizen.Wait(200)
+										SetPedAsNoLongerNeeded(copped)
+										SetVehicleAsNoLongerNeeded(vehicle)
+										SetEntityInvincible(vehicle, false)
+										break
+									end
+									Citizen.Wait(3000)
+									pCoords = GetEntityCoords(playerPed, true)
+									copCoords = GetEntityCoords(copped, true)
+									distance = GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, copCoords.x, copCoords.y, copCoords.z, true) 
+								end
+								if mphcalc2 <= 2.5 and wantedlevel2 == 0 then
+									exports['mythic_notify']:SendAlert("error", 'Engine Off')
+									Citizen.Wait(1000)
+									exports['mythic_notify']:SendAlert("inform", 'Window Down')
+									Citizen.Wait(2000)
+									TaskLeaveVehicle(copped, vehicle, 0)
+									TaskGoToCoordAnyMeans(copped, pCoords, 1.0, 0, 786603, 0xbf800000)
+								end
+								while mphcalc2 <= 2.5 and wantedlevel2 == 0 and distance > 3.0 do
+									speed2 = GetEntitySpeed(pedvehicle)
+									mphcalc2 = speed2 * 2.236936
+									if mphcalc2 > 2.5 and wantedlevel2 == 0 then 
+										exports['mythic_notify']:SendAlert("inform", 'Failed to Stop')
+										exports['mythic_notify']:SendAlert("error", 'A Warrant has been issued for your arrest')
+										SetPlayerWantedLevel(PlayerId(), 1, false)
+										SetPlayerWantedLevelNow(PlayerId(), false)
+										Citizen.Wait(200)
+										SetPedAsNoLongerNeeded(copped)
+										SetVehicleAsNoLongerNeeded(vehicle)
+										SetEntityInvincible(vehicle, false)
+										break
+									end
+									Citizen.Wait(3000)
+									pCoords = GetEntityCoords(playerPed, true)
+									copCoords = GetEntityCoords(copped, true)
+									distance = GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, copCoords.x, copCoords.y, copCoords.z, true) 
+								end
+								if mphcalc2 <= 2.5 and wantedlevel2 == 0 then
+									TriggerServerEvent('warrant:speedingticket')
+									exports['mythic_notify']:SendAlert("inform", 'You have been fined $500 for speeding')
+									exports['mythic_notify']:SendAlert("success", 'You are free to go')
+								end
 								SetPedAsNoLongerNeeded(copped)
 								SetVehicleAsNoLongerNeeded(vehicle)
-							elseif mphcalc2 <= 2.5 and wantedlevel2 == 0 and distance >= 25.0 then
-								TriggerServerEvent('pullmeover:speedingticket')
-								Citizen.Wait(1000)
-								exports['mythic_notify']:SendAlert("error", 'The officer has been called away')
-								exports['mythic_notify']:SendAlert("inform", 'Your plate has been fined $500 for speeding')
-								exports['mythic_notify']:SendAlert("success", 'You are free to go')
-								SetPedAsNoLongerNeeded(copped)
-								SetVehicleAsNoLongerNeeded(vehicle)
+								SetEntityInvincible(vehicle, false)
 							elseif mphcalc2 > 2.5 and wantedlevel2 == 0 then 
 								exports['mythic_notify']:SendAlert("inform", 'Failed to Stop')
 								exports['mythic_notify']:SendAlert("error", 'A Warrant has been issued for your arrest')
@@ -166,12 +204,10 @@ Citizen.CreateThread(function()
 								Citizen.Wait(200)
 								SetPedAsNoLongerNeeded(copped)
 								SetVehicleAsNoLongerNeeded(vehicle)
-							else
-								SetPedAsNoLongerNeeded(copped)
-								SetVehicleAsNoLongerNeeded(vehicle)
+								SetEntityInvincible(vehicle, false)
 							end
 						end
-						if mphcalc >= 140.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
+						if mphcalc > 145.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 135 mph', 2500)
 							Citizen.Wait(1000)
