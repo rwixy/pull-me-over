@@ -8,7 +8,7 @@ Citizen.CreateThread(function()
 end)
 
 local useMytic = false
-local beingChased = false
+local beingChased = false --DON'T CHANGE THIS
 
 -- Enumeration
 local entityEnumerator = {
