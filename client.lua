@@ -8,7 +8,7 @@ Citizen.CreateThread(function()
 end)
 
 local useMytic = false
-local swimmer = false
+local beingChased = false
 
 -- Enumeration
 local entityEnumerator = {
@@ -137,7 +137,7 @@ Citizen.CreateThread(function()
 									speed2 = GetEntitySpeed(pedvehicle)
 									mphcalc2 = speed2 * 2.236936
 									if mphcalc2 > 2.5 and wantedlevel2 == 0 then 
-										swimmer = true
+										beingChased = true
 										if useMytic==true then
 											exports['mythic_notify']:SendAlert("inform", 'Failed to Stop')
 											exports['mythic_notify']:SendAlert("error", 'A Warrant has been issued for your arrest')
@@ -165,6 +165,8 @@ Citizen.CreateThread(function()
 									else
 										ESX.ShowAdvancedNotification('Unit '..officer..':', 'Engine off,', 'Windows down please...', 'CHAR_DEFAULT', 1, false, true, 140)
 									end
+									SetVehicleEngineOn(pedvehicle, false, false, true )
+									RollDownWindows(pedvehicle)
 									Citizen.Wait(2000)
 									TaskLeaveVehicle(copped, vehicle, 0)
 									TaskGoToCoordAnyMeans(copped, pCoords, 1.0, 0, 786603, 0xbf800000)
@@ -173,12 +175,12 @@ Citizen.CreateThread(function()
 									speed2 = GetEntitySpeed(pedvehicle)
 									mphcalc2 = speed2 * 2.236936
 									if mphcalc2 > 2.5 and wantedlevel2 == 0 then 
-										swimmer = true
+										beingChased = true
 										if useMytic==true then
 											exports['mythic_notify']:SendAlert("inform", 'Failed to Stop')
 											exports['mythic_notify']:SendAlert("error", 'A Warrant has been issued for your arrest')
 										else
-											ESX.ShowAdvancedNotification('Unit '..officer..':', '10-55,', 'Calling ~r~ALL~s~ units. We have a failure to stop, Calling ~b~ALL~s~ units.', 'CHAR_DEFAULT', 1, false, true, 140)
+											ESX.ShowAdvancedNotification('Unit '..officer..':', '10-55,', 'Calling ~r~ALL~s~ units. Calling ~b~ALL~s~ units. We have a Runner!', 'CHAR_DEFAULT', 1, false, true, 140)
 										end
 										SetPlayerWantedLevel(PlayerId(), 1, false)
 										SetPlayerWantedLevelNow(PlayerId(), false)
@@ -194,20 +196,24 @@ Citizen.CreateThread(function()
 									distance = GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, copCoords.x, copCoords.y, copCoords.z, true) 
 								end
 								if mphcalc2 <= 2.5 and wantedlevel2 == 0 then
-									swimmer = false
+									beingChased = false
+									TaskGoToEntity(copped, driverdoor, -1, 10.0, 2.0, 0, 0)
+									TaskStartScenarioInPlace(copped, 'WORLD_HUMAN_CLIPBOARD', 0, false)
+									Citizen.Wait(15000)
 									TriggerServerEvent('warrant:speedingticket')
 									if useMytic==true then
 										exports['mythic_notify']:SendAlert("inform", 'You have been fined $500 for speeding')
 										exports['mythic_notify']:SendAlert("success", 'You are free to go')
 									else
-										ESX.ShowAdvancedNotification('Unit '..officer..',', 'Here you go:', 'You\'ve been fined $~g~500~s~, have a nice day.', 'CHAR_DEFAULT', 1, false, true, 140)
+										ESX.ShowAdvancedNotification('Unit '..officer..',', 'Here you go:', 'You\'ve been fined $~g~500~s~ for going ~r~'..mph..' MPH~s~ in a ~r~80 MPH~s~ zone, have a nice day.', 'CHAR_DEFAULT', 1, false, true, 140)
 									end
+									ClearPedTasks(copped)
 								end
 								SetPedAsNoLongerNeeded(copped)
 								SetVehicleAsNoLongerNeeded(vehicle)
 								SetEntityInvincible(vehicle, false)
 							elseif mphcalc2 > 2.5 and wantedlevel2 == 0 then 
-								swimmer = true
+								beingChased = true
 								if useMytic==true then
 									exports['mythic_notify']:SendAlert("inform", 'Failed to Stop')
 									exports['mythic_notify']:SendAlert("error", 'A Warrant has been issued for your arrest')
@@ -221,9 +227,9 @@ Citizen.CreateThread(function()
 								SetVehicleAsNoLongerNeeded(vehicle)
 								SetEntityInvincible(vehicle, false)
 							end
-						elseif mphcalc > 110.0 and mphcalc <= 160.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
+						elseif mphcalc > 110.0 and mphcalc <= 145.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
-							swimmer = true
+							beingChased = true
 							if useMytic==true then
 								exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 135 mph', 2500)
 								Citizen.Wait(1000)
@@ -237,9 +243,9 @@ Citizen.CreateThread(function()
 							Citizen.Wait(200)
 							SetPedAsNoLongerNeeded(copped)
 							SetVehicleAsNoLongerNeeded(vehicle)
-						elseif mphcalc > 160.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
+						elseif mphcalc > 145.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
-							swimmer = false
+							beingChased = false
 							if useMytic==true then
 								exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 135 mph', 2500)
 								Citizen.Wait(1000)
@@ -254,8 +260,8 @@ Citizen.CreateThread(function()
 						end
 					end
 				end
-				if swimmer==true then 
-					if mphcalc > 160.0 and playervehclass ~= 18 and swimmer==true  then 
+				if beingChased==true then 
+					if mphcalc > 155.0 and playervehclass ~= 18 and beingChased==true  then 
 						local mph = ESX.Math.Round(mphcalc)
 						if useMytic==true then
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 165 mph', 2500)
@@ -267,7 +273,7 @@ Citizen.CreateThread(function()
 						end
 						ClearPlayerWantedLevel(PlayerId())
 						Citizen.Wait(200)
-						swimmer = false
+						beingChased = false
 					end
 				end
 			end
