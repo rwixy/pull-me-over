@@ -197,7 +197,7 @@ Citizen.CreateThread(function()
 								end
 								if mphcalc2 <= 2.5 and wantedlevel2 == 0 then
 									beingChased = false
-									TaskGoToEntity(copped, driverdoor, -1, 10.0, 2.0, 0, 0)
+									TaskGoToEntity(copped, pCoords, -1, 10.0, 2.0, 0, 0)
 									TaskStartScenarioInPlace(copped, 'WORLD_HUMAN_CLIPBOARD', 0, false)
 									Citizen.Wait(15000)
 									TriggerServerEvent('warrant:speedingticket')
