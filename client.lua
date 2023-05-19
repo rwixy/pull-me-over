@@ -8,6 +8,7 @@ Citizen.CreateThread(function()
 end)
 
 local useMytic = false
+local useProgressBar = false
 local beingChased = false
 
 -- Enumeration
@@ -86,12 +87,11 @@ Citizen.CreateThread(function()
 			local pedvehicle = GetVehiclePedIsIn(playerPed, false)
 			local speed = GetEntitySpeed(pedvehicle)
 			local mphcalc = speed * 2.236936
-			local inpedvehicle = IsPedInVehicle(playerPed, pedvehicle, false)
+			local inpedvehicle = IsPedInVehicle(playerPed, pedvehicle, false) 
 			if vtype == 18 then  
 				local vCoords = GetEntityCoords(vehicle, true)
 				if GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, vCoords.x, vCoords.y, vCoords.z, true) <= 50.0 then 
-					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 and playervehclass ~= 18 
-					and HasEntityClearLosToEntityInFront(copped, playerPed) then
+					if copped ~= playerPed and copped ~= playerPed2 and wantedlevel == 0 and inpedvehicle == 1 and playervehclass ~= 18 and HasEntityClearLosToEntityInFront(copped, playerPed) then
 						if mphcalc >= 45.0 and mphcalc <= 70.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							if useMytic==true then
@@ -101,6 +101,7 @@ Citizen.CreateThread(function()
 								--ESX.ShowAdvancedNotification('Unit '..officer..':', '10-17,', 'Suspect spotted, I clocked them going at '..mph..' Miles Per hour', 'CHAR_DEFAULT', 1, false, true, 140)
 							end
 						end
+
 						if mphcalc > 80.0 and mphcalc <= 110.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
 							SetEntityAsMissionEntity(vehicle, true, true)
@@ -111,7 +112,10 @@ Citizen.CreateThread(function()
 								ESX.ShowAdvancedNotification('Unit '..officer..':', '10-17,', 'Suspect spotted, I clocked them going at '..mph..' Miles Per hour, ~r~Begining Persuit~s~', 'CHAR_DEFAULT', 1, false, true, 140)
 							end
 							Citizen.Wait(2000)
+							local coppedBlip = AddBlipForEntity(copped)
 							SetVehicleSiren(vehicle, true)
+							SetBlipSprite(coppedBlip, 42)
+							SetBlipScale(coppedBlip, 0.5)
 							TaskVehicleFollow(copped, vehicle, pedvehicle, 25.0, 572, 20)
 							SetEntityInvincible(vehicle, true)
 							speed2 = GetEntitySpeed(pedvehicle)
@@ -122,12 +126,12 @@ Citizen.CreateThread(function()
 							wantedlevel2 = GetPlayerWantedLevel(playerPed2)
 							distance = GetDistanceBetweenCoords(pCoords.x, pCoords.y, pCoords.z, copCoords.x, copCoords.y, copCoords.z, true) 
 							Citizen.Wait(7000)
-							if useMytic==true then
-								exports['progressBars']:startUI(20000, "PULL OVER...")
+							if useProgressBar==true then
+								exports['progressBars']:startUI(30000, "PULL OVER...")
 							else
 								ESX.ShowAdvancedNotification('Unit '..officer..':', 'HEY YOU!!', 'Pull the F*CK OVER!', 'CHAR_DEFAULT', 1, false, true, 140)
 							end
-							Citizen.Wait(20000)
+							Citizen.Wait(30000)
 							speed2 = GetEntitySpeed(pedvehicle)
 							mphcalc2 = speed2 * 2.236936
 							if mphcalc2 <= 2.5 and wantedlevel2 == 0 then
@@ -144,6 +148,8 @@ Citizen.CreateThread(function()
 										else
 											ESX.ShowAdvancedNotification('Unit '..officer..':', '10-55,', 'Calling ~r~ALL~s~ units. We have a failure to stop, Calling ~b~ALL~s~ units.', 'CHAR_DEFAULT', 1, false, true, 140)
 										end
+										ReportCrime(PlayerId(), 3, 1)
+										--SetMaxWantedLevel(1)
 										SetPlayerWantedLevel(PlayerId(), 1, false)
 										SetPlayerWantedLevelNow(PlayerId(), false)
 										Citizen.Wait(200)
@@ -182,6 +188,8 @@ Citizen.CreateThread(function()
 										else
 											ESX.ShowAdvancedNotification('Unit '..officer..':', '10-55,', 'Calling ~r~ALL~s~ units. Calling ~b~ALL~s~ units. We have a Runner!', 'CHAR_DEFAULT', 1, false, true, 140)
 										end
+										ReportCrime(PlayerId(), 3, 1)
+										--SetMaxWantedLevel(1)
 										SetPlayerWantedLevel(PlayerId(), 1, false)
 										SetPlayerWantedLevelNow(PlayerId(), false)
 										Citizen.Wait(200)
@@ -197,7 +205,7 @@ Citizen.CreateThread(function()
 								end
 								if mphcalc2 <= 2.5 and wantedlevel2 == 0 then
 									beingChased = false
-									TaskGoToEntity(copped, pCoords, -1, 10.0, 2.0, 0, 0)
+									TaskGoToEntity(copped, pCoords, -1, -1, distance+0.5, 0, 0)
 									TaskStartScenarioInPlace(copped, 'WORLD_HUMAN_CLIPBOARD', 0, false)
 									Citizen.Wait(15000)
 									TriggerServerEvent('warrant:speedingticket')
@@ -207,12 +215,13 @@ Citizen.CreateThread(function()
 									else
 										ESX.ShowAdvancedNotification('Unit '..officer..',', 'Here you go:', 'You\'ve been fined $~g~500~s~ for going ~r~'..mph..' MPH~s~ in a ~r~80 MPH~s~ zone, have a nice day.', 'CHAR_DEFAULT', 1, false, true, 140)
 									end
-									ClearPedTasks(copped)
+									ClearPedTasks(copped)									
+									SetMaxWantedLevel(5)
 								end
 								SetPedAsNoLongerNeeded(copped)
 								SetVehicleAsNoLongerNeeded(vehicle)
 								SetEntityInvincible(vehicle, false)
-							elseif mphcalc2 > 2.5 and wantedlevel2 == 0 then 
+							elseif mphcalc2 > 2.5 and wantedlevel2 == 0 and distance < 100.0 then 
 								beingChased = true
 								if useMytic==true then
 									exports['mythic_notify']:SendAlert("inform", 'Failed to Stop')
@@ -220,12 +229,26 @@ Citizen.CreateThread(function()
 								else
 									ESX.ShowAdvancedNotification('Unit '..officer..':', '10-55,', 'Calling ~r~ALL~s~ units. We have a failure to stop, Calling ~b~ALL~s~ units.', 'CHAR_DEFAULT', 1, false, true, 140)
 								end
+								ReportCrime(PlayerId(), 3, 1)
+								--SetMaxWantedLevel(1)
 								SetPlayerWantedLevel(PlayerId(), 1, false)
 								SetPlayerWantedLevelNow(PlayerId(), false)
 								Citizen.Wait(200)
 								SetPedAsNoLongerNeeded(copped)
 								SetVehicleAsNoLongerNeeded(vehicle)
 								SetEntityInvincible(vehicle, false)
+							elseif mphcalc2 > 2.5 and wantedlevel2 == 0 and distance > 100.0 then	
+								beingChased = false
+								if useMytic==true then
+									exports['mythic_notify']:SendAlert("inform", 'We lost him')
+									exports['mythic_notify']:SendAlert("error", 'I\'ve lost sight of the suspect')
+								else
+									ESX.ShowAdvancedNotification('Unit '..officer..':', '10-12,', 'Calling off ~r~pursuit~s~. I have lost sight of the ~b~Subject~s~.', 'CHAR_DEFAULT', 1, false, true, 140)
+								end
+								Citizen.Wait(200)
+								SetPedAsNoLongerNeeded(copped)
+								SetVehicleAsNoLongerNeeded(vehicle)
+								SetEntityInvincible(vehicle, false)					
 							end
 						elseif mphcalc > 110.0 and mphcalc <= 145.0 and DoesEntityExist(copped) and playervehclass ~= 18 then 
 							local mph = ESX.Math.Round(mphcalc)
@@ -238,7 +261,9 @@ Citizen.CreateThread(function()
 							else
 								ESX.ShowAdvancedNotification('Unit '..officer..':', '10-99,', 'Calling ~r~ALL~s~ units. Someone just flew by me at ~r~'..mph..' MPH~s~, Calling ~b~ALL~s~ units.', 'CHAR_DEFAULT', 1, false, true, 140)
 							end
-							SetPlayerWantedLevel(PlayerId(), 1, false)
+							ReportCrime(PlayerId(), 4, 3)
+							--SetMaxWantedLevel(1)
+							SetPlayerWantedLevel(PlayerId(), 3, false)
 							SetPlayerWantedLevelNow(PlayerId(), false)
 							Citizen.Wait(200)
 							SetPedAsNoLongerNeeded(copped)
@@ -261,7 +286,7 @@ Citizen.CreateThread(function()
 					end
 				end
 				if beingChased==true then 
-					if mphcalc > 155.0 and playervehclass ~= 18 and beingChased==true  then 
+					if mphcalc > 160.0 and playervehclass ~= 18 and beingChased==true  then 
 						local mph = ESX.Math.Round(mphcalc)
 						if useMytic==true then
 							exports['mythic_notify']:SendAlert("error", 'Radar Detected - '..mph..' / 165 mph', 2500)
@@ -271,12 +296,32 @@ Citizen.CreateThread(function()
 						else
 							ESX.ShowAdvancedNotification('Unit '..officer..':', 'All Units,', 'We are ending the pursuit, this guy is just too Fast.', 'CHAR_DEFAULT', 1, false, true, 140)
 						end
-						ClearPlayerWantedLevel(PlayerId())
+						ClearPlayerWantedLevel(PlayerId())						
+						SetMaxWantedLevel(5)
 						Citizen.Wait(200)
 						beingChased = false
 					end
 				end
 			end
+		end
+		if beingChased==true then 
+			if wantedlevel==1 then
+				
+			elseif wantedlevel==2 then
+				EnableDispatchService(8, false)
+				EnableDispatchService(2, false)
+			elseif wantedlevel==3 then
+				EnableDispatchService(8, false)
+				EnableDispatchService(2, true)
+			elseif wantedlevel==4 then
+				EnableDispatchService(8, true)
+				EnableDispatchService(2, true)
+			elseif wantedlevel==5 then
+
+			end
+		elseif beingChased==false then 
+			EnableDispatchService(8, true)
+			EnableDispatchService(2, true)
 		end
     end
 end)
